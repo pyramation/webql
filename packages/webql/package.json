@@ -1,6 +1,6 @@
 {
   "name": "@pyramation/webql",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "graphile explorer module for multiple dbs and schemas",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "homepage": "https://github.com/pyramation/webql/tree/master/packages/webql#readme",

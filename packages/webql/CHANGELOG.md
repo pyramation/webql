@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.3](https://github.com/pyramation/webql/compare/@pyramation/webql@0.2.2...@pyramation/webql@0.2.3) (2020-05-20)
+
+
+### Bug Fixes
+
+* **webql:** remove babel ([c60b420](https://github.com/pyramation/webql/commit/c60b42088a67c1c30677c2c74d76eeff6f313450))
+
+
+
+
+
 ## [0.2.2](https://github.com/pyramation/webql/compare/@pyramation/webql@0.2.1...@pyramation/webql@0.2.2) (2020-05-20)
 
 
