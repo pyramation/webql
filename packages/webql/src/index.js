@@ -5,6 +5,7 @@ import pg from 'pg';
 import cors from 'cors';
 import env from './env';
 import LRU from 'lru-cache';
+import { printSchemas, printDatabases } from './render';
 
 const cache = new LRU({
   max: 5,
@@ -116,18 +117,7 @@ export default () => {
       SELECT s.nspname AS table_schema
       FROM pg_catalog.pg_namespace s;
       `);
-      return res.send(
-        `<style>html { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" }</style><h1>Schemas in ${dbName}</h1><hr />` +
-          results.rows
-            .map((d) => [
-              d,
-              `${req.protocol}://${d.table_schema}.${req.hostname}:${env.SERVER_PORT}/graphiql`
-            ])
-            .map(([d, url]) => {
-              return `<a href="${url}" />${d.table_schema}</a><br />`;
-            })
-            .join('\n')
-      );
+      return res.send(printSchemas(dbName, results.rows, req, env));
     }
     return next();
   });
@@ -152,25 +142,17 @@ export default () => {
     return next();
   });
 
-  app.get('/', async (req, res, next) => {
-    const results = await rootPgPool.query(`
-  SELECT
-    *
-  FROM
-    pg_catalog.pg_database;
-  `);
-    return res.send(
-      '<style>html { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" }</style><h1>Databases</h1><hr />' +
-        results.rows
-          .map((d) => [
-            d,
-            `${req.protocol}://${d.datname}.${req.hostname}:${env.SERVER_PORT}`
-          ])
-          .map(([d, url]) => {
-            return `<a href="${url}" />${d.datname}</a><br />`;
-          })
-          .join('\n')
-    );
+  app.use(async (req, res, next) => {
+    if (req.subdomains.length === 0) {
+      const results = await rootPgPool.query(`
+      SELECT
+        *
+      FROM
+        pg_catalog.pg_database;
+      `);
+      return res.send(printDatabases(results.rows, req, env));
+    }
+    return next();
   });
 
   app.listen(env.SERVER_PORT, env.SERVER_HOST);
