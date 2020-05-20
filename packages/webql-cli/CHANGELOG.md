@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.2](https://github.com/pyramation/webql/compare/webql-cli@0.1.1...webql-cli@0.1.2) (2020-05-20)
+
+
+### Bug Fixes
+
+* **webql-cli:** remove prompt ([f94e2fd](https://github.com/pyramation/webql/commit/f94e2fd75df25090cdf0fc00e1a36baffeac6149))
+
+
+
+
+
 ## [0.1.1](https://github.com/pyramation/webql/compare/webql-cli@0.1.0...webql-cli@0.1.1) (2020-05-20)
 
 **Note:** Version bump only for package webql-cli
