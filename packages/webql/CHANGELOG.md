@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.1.0](https://github.com/pyramation/webql/compare/@pyramation/webql@0.0.3...@pyramation/webql@0.1.0) (2020-05-20)
+
+
+### Features
+
+* **webql-cli:** add server ([40d5f0f](https://github.com/pyramation/webql/commit/40d5f0fba35d7ed2efc89cce592804016751c3ed))
+
+
+
+
+
 ## 0.0.3 (2020-05-20)
 
 
