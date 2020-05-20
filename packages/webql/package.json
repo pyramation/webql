@@ -1,5 +1,5 @@
 {
-  "name": "webql",
+  "name": "@pyramation/webql",
   "version": "0.0.2",
   "description": "graphile explorer module for multiple dbs and schemas",
   "author": "Dan Lynch <pyramation@gmail.com>",
@@ -71,5 +71,6 @@
     "lru-cache": "5.1.1",
     "pg": "8.2.1",
     "postgraphile": "4.7.0"
-  }
+  },
+  "gitHead": "a459fa4c54eefda11eaca0e15635eb015f06c2ed"
 }
