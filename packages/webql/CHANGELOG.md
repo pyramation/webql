@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.2](https://github.com/pyramation/webql/compare/@pyramation/webql@0.2.1...@pyramation/webql@0.2.2) (2020-05-20)
+
+
+### Bug Fixes
+
+* **webql:** cleanup ([39b63d3](https://github.com/pyramation/webql/commit/39b63d34d4c6b86433b1d3092a4fedf04d3cedcd))
+* **webql:** refactor ([08e1225](https://github.com/pyramation/webql/commit/08e1225aee16fa04dfb3bd4f7bf173e050f90710))
+
+
+
+
+
 ## [0.2.1](https://github.com/pyramation/webql/compare/@pyramation/webql@0.2.0...@pyramation/webql@0.2.1) (2020-05-20)
 
 
