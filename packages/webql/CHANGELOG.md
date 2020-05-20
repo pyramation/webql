@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.2.0](https://github.com/pyramation/webql/compare/@pyramation/webql@0.1.0...@pyramation/webql@0.2.0) (2020-05-20)
+
+
+### Features
+
+* **webql:** index pages ([9cb34de](https://github.com/pyramation/webql/commit/9cb34de21666561dc0d7714e48a24446a1516865))
+
+
+
+
+
 # [0.1.0](https://github.com/pyramation/webql/compare/@pyramation/webql@0.0.3...@pyramation/webql@0.1.0) (2020-05-20)
 
 
