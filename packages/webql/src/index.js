@@ -92,9 +92,9 @@ module.exports = () => {
   app.use(
     cors({
       origin: function (origin, callback) {
-        if (env.isProd && !env.APP_HOSTS.includes(origin)) {
-          return callback(true, false);
-        }
+        // if (env.isProd && !env.APP_HOSTS.includes(origin)) {
+        //   return callback(true, false);
+        // }
         return callback(null, true);
       },
       credentials: true

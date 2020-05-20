@@ -11,8 +11,7 @@
     "test": "__tests__"
   },
   "files": [
-    "main",
-    "module"
+    "src"
   ],
   "publishConfig": {
     "access": "public"
