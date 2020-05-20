@@ -1,3 +1,3 @@
-import server from './index';
+const server = require('./index');
 
 server();

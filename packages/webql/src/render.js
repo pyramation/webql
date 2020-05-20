@@ -1,4 +1,4 @@
-export const printDatabases = (databases, req, env) => {
+module.exports.printDatabases = (databases, req, env) => {
   return (
     '<style>html { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" }</style>' +
     '<h1>Databases</h1>' +
@@ -15,7 +15,7 @@ export const printDatabases = (databases, req, env) => {
   );
 };
 
-export const printSchemas = (dbName, schemas, req, env) => {
+module.exports.printSchemas = (dbName, schemas, req, env) => {
   return (
     `<style>html { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" }</style>` +
     `<h1>Schemas in ${dbName}</h1>` +

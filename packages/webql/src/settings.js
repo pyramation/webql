@@ -1,7 +1,7 @@
 const env = require('./env');
 const { NodePlugin } = require('graphile-build');
 
-export const getGraphileSettings = ({ connection, host, port, schema }) => ({
+module.exports.getGraphileSettings = ({ connection, host, port, schema }) => ({
   skipPlugins: [NodePlugin],
   dynamicJson: true,
   disableGraphiql: env.isProd,

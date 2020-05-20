@@ -1,11 +1,11 @@
-import express from 'express';
-import { getGraphileSettings } from './settings';
-import { postgraphile } from 'postgraphile';
-import pg from 'pg';
-import cors from 'cors';
-import env from './env';
-import LRU from 'lru-cache';
-import { printSchemas, printDatabases } from './render';
+const express = require('express');
+const { getGraphileSettings } = require('./settings');
+const { postgraphile } = require('postgraphile');
+const pg = require('pg');
+const cors = require('cors');
+const env = require('./env');
+const LRU = require('lru-cache');
+const { printSchemas, printDatabases } = require('./render');
 
 const cache = new LRU({
   max: 5,
@@ -73,7 +73,7 @@ const getGraphileInstanceObj = (dbName, schemaName) => {
   return obj;
 };
 
-export default () => {
+module.exports = () => {
   const app = express();
 
   const rootPgPool = new pg.Pool({
