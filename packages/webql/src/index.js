@@ -87,4 +87,6 @@ const defaultOptions = {
 
 app.use(postgraphile(rootPgPool, defaultOptions.schema, defaultOptions));
 
-app.listen(env.GRAPHQL_SERVER_PORT, env.GRAPHQL_SERVER_HOST);
+export default () => {
+  app.listen(env.GRAPHQL_SERVER_PORT, env.GRAPHQL_SERVER_HOST);
+};

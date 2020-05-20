@@ -7,6 +7,9 @@
   "license": "SEE LICENSE IN LICENSE",
   "main": "main/index.js",
   "module": "module/index.js",
+  "bin": {
+    "webql": "./main/cli.js"
+  },
   "directories": {
     "lib": "src",
     "test": "__tests__"
@@ -58,7 +61,9 @@
     "regenerator-runtime": "^0.13.2"
   },
   "dependencies": {
-    "@babel/runtime": "^7.4.2"
+    "@babel/runtime": "^7.4.2",
+    "@pyramation/prompt": "0.0.1",
+    "@pyramation/webql": "0.0.3"
   },
   "gitHead": "a459fa4c54eefda11eaca0e15635eb015f06c2ed"
 }
