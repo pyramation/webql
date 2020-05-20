@@ -72,7 +72,7 @@ const getGraphileInstanceObj = (dbName, schemaName) => {
   return obj;
 };
 
-export default () => {
+export default (portToUse = env.SERVER_PORT) => {
   const app = express();
 
   const rootPgPool = new pg.Pool({
@@ -121,7 +121,7 @@ export default () => {
           results.rows
             .map((d) => [
               d,
-              `${req.protocol}://${d.table_schema}.${req.hostname}:${env.SERVER_PORT}/graphiql`
+              `${req.protocol}://${d.table_schema}.${req.hostname}:${portToUse}/graphiql`
             ])
             .map(([d, url]) => {
               return `<a href="${url}" />${d.table_schema}</a><br />`;
@@ -164,7 +164,7 @@ export default () => {
         results.rows
           .map((d) => [
             d,
-            `${req.protocol}://${d.datname}.${req.hostname}:${env.SERVER_PORT}`
+            `${req.protocol}://${d.datname}.${req.hostname}:${portToUse}`
           ])
           .map(([d, url]) => {
             return `<a href="${url}" />${d.datname}</a><br />`;
@@ -173,5 +173,7 @@ export default () => {
     );
   });
 
-  app.listen(env.SERVER_PORT, env.SERVER_HOST);
+  app.listen(portToUse, env.SERVER_HOST);
 };
+
+export { env };
