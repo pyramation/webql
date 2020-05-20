@@ -5,10 +5,14 @@ const array = makeValidator((x) => x.split(','), '');
 module.exports = cleanEnv(
   process.env,
   {
-    GRAPHQL_SERVER_SCHEMAS: array(),
-    GRAPHQL_SERVER_PORT: port(),
-    GRAPHQL_SERVER_HOST: str(),
-    DATABASE_URL: url()
+    GRAPHILE_SCHEMAS: array({ default: 'information_schema' }),
+    SERVER_PORT: port({ default: 5000 }),
+    SERVER_HOST: str({ default: 'localhost' }),
+    APP_HOSTS: str({ default: 'localhost' }),
+    PGUSER: str({ default: 'postgres' }),
+    PGHOST: str({ default: 'localhost' }),
+    PGPASSWORD: str({ default: 'password' }),
+    PGPORT: port({ default: 5432 })
   },
   { dotEnvPath: null }
 );

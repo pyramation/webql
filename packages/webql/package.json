@@ -31,8 +31,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:debug": "node --inspect node_modules/.bin/jest --runInBand",
-    "dev": "NODE_ENV=development babel-node src/index",
-    "start": "node main/index"
+    "dev": "NODE_ENV=development babel-node src/server",
+    "start": "node main/server"
   },
   "bugs": {
     "url": "https://github.com/pyramation/webql/issues"
