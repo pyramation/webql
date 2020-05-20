@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.4](https://github.com/pyramation/webql/compare/@pyramation/webql@0.2.3...@pyramation/webql@0.2.4) (2020-05-20)
+
+
+### Bug Fixes
+
+* **webql:** cors ([498b44b](https://github.com/pyramation/webql/commit/498b44b9b45248761b6339dcd39c3a01944ee50f))
+
+
+
+
+
 ## [0.2.3](https://github.com/pyramation/webql/compare/@pyramation/webql@0.2.2...@pyramation/webql@0.2.3) (2020-05-20)
 
 
