@@ -1,15 +1,17 @@
-const useESModules = !!process.env.MODULE;
-
 module.exports = (api) => {
-  api.cache(() => process.env.MODULE);
+  api.cache(true);
   return {
     plugins: [
-      ['@babel/transform-runtime', { useESModules }],
+      ["@babel/plugin-transform-runtime",
+        {
+          "esmodules": true
+        }],
       '@babel/proposal-object-rest-spread',
       '@babel/proposal-class-properties',
-      '@babel/proposal-export-default-from',
-      'macros'
+      '@babel/proposal-export-default-from'
     ],
-    presets: useESModules ? ['@babel/react'] : ['@babel/env', '@babel/react']
+    presets: [
+      "@babel/env"
+    ]
   };
 };

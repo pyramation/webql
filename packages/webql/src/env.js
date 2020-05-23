@@ -6,7 +6,7 @@ module.exports = cleanEnv(
   process.env,
   {
     GRAPHILE_SCHEMAS: array({ default: 'information_schema' }),
-    SERVER_PORT: port({ default: 5000 }),
+    SERVER_PORT: port({ default: 5555 }),
     SERVER_HOST: str({ default: 'localhost' }),
     APP_HOSTS: str({ default: 'localhost' }),
     PGUSER: str({ default: 'postgres' }),

@@ -5,18 +5,14 @@
   "author": "Dan Lynch <pyramation@gmail.com>",
   "homepage": "https://github.com/pyramation/webql/tree/master/packages/webql-cli#readme",
   "license": "SEE LICENSE IN LICENSE",
-  "main": "main/index.js",
-  "module": "module/index.js",
-  "bin": {
-    "webql": "./main/cli.js"
-  },
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
   "directories": {
     "lib": "src",
     "test": "__tests__"
   },
   "files": [
-    "main",
-    "module"
+    "dist"
   ],
   "publishConfig": {
     "access": "public"
@@ -26,9 +22,10 @@
     "url": "https://github.com/pyramation/webql"
   },
   "scripts": {
-    "build:main": "BABEL_ENV=production babel src --out-dir main --delete-dir-on-start",
-    "build:module": "MODULE=true babel src --out-dir module --delete-dir-on-start",
-    "build": "npm run build:module && npm run build:main",
+    "dist:cjs": "NODE_ENV=production BABEL_ENV=cjs babel src --out-dir ./dist/cjs --delete-dir-on-start",
+    "dist:esm": "NODE_ENV=production BABEL_ENV=esm babel src --out-dir ./dist/esm --delete-dir-on-start",
+    "dist:es": "NODE_ENV=production BABEL_ENV=es babel src --out-dir ./dist/es --delete-dir-on-start",
+    "build": "npm run dist:cjs && npm run dist:esm",
     "prepare": "npm run build",
     "lint": "eslint src --fix",
     "test": "jest",

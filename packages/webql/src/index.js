@@ -89,17 +89,7 @@ export default () => {
     res.send('ok');
   });
 
-  app.use(
-    cors({
-      origin: function (origin, callback) {
-        if (env.isProd && !env.APP_HOSTS.includes(origin)) {
-          return callback(true, false);
-        }
-        return callback(null, true);
-      },
-      credentials: true
-    })
-  );
+  app.use(cors());
 
   process.on('SIGTERM', () => {
     console.log("SIGTERM rec'd");
@@ -155,5 +145,7 @@ export default () => {
     return next();
   });
 
-  app.listen(env.SERVER_PORT, env.SERVER_HOST);
+  app.listen(env.SERVER_PORT, env.SERVER_HOST, () =>
+    console.log(`app listening at http://${env.SERVER_HOST}:${env.SERVER_PORT}`)
+  );
 };
