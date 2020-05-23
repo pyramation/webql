@@ -7,6 +7,9 @@
   "license": "SEE LICENSE IN LICENSE",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
+  "bin": {
+    "webql": "./main/cli.js"
+  },
   "directories": {
     "lib": "src",
     "test": "__tests__"
