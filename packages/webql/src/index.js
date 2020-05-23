@@ -11,8 +11,7 @@ const cache = new LRU({
   max: 5,
   dispose: function (key, obj) {
     console.log(`closing ${key}`);
-    console.log('closing connection...');
-    obj.pgPool.end();
+    obj?.pgPool?.end?.(); // eslint-disable-line 
   },
   maxAge: 1000 * 60 * 60
 });
@@ -21,8 +20,7 @@ const pgCache = new LRU({
   max: 3,
   dispose: function (key, pgPool) {
     console.log(`closing ${key}`);
-    console.log('closing connection...');
-    pgPool.end();
+    pgPool?.end?.(); // eslint-disable-line 
   },
   maxAge: 1000 * 60 * 60
 });
@@ -92,10 +90,9 @@ export default () => {
   app.use(cors());
 
   process.on('SIGTERM', () => {
-    console.log("SIGTERM rec'd");
     cache.reset();
     pgCache.reset();
-    rootPgPool.end();
+    rootPgPool?.end?.(); // eslint-disable-line 
   });
 
   app.use(async (req, res, next) => {
