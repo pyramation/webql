@@ -1,6 +1,6 @@
 {
   "name": "webql-cli",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "webql-cli",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "homepage": "https://github.com/pyramation/webql/tree/master/packages/webql-cli#readme",
@@ -64,6 +64,6 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.4.2",
-    "@pyramation/webql": "^0.2.6"
+    "@pyramation/webql": "^0.2.7"
   }
 }
