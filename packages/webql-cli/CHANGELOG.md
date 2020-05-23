@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.8](https://github.com/pyramation/webql/compare/webql-cli@0.1.7...webql-cli@0.1.8) (2020-05-23)
+
+
+### Bug Fixes
+
+* **webql-cli:** bin file ([6f956e9](https://github.com/pyramation/webql/commit/6f956e9e1a8550a10f6f786d432fb9fa8f1a412f))
+
+
+
+
+
 ## [0.1.7](https://github.com/pyramation/webql/compare/webql-cli@0.1.3...webql-cli@0.1.7) (2020-05-23)
 
 
