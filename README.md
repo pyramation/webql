@@ -39,6 +39,5 @@ If you have your own password for example
 
 ```sh
 export PGPASSWORD=mypassword
-export SERVER_PORT=5656
-webql
+webql -p 5656
 ```
