@@ -105,7 +105,15 @@ export default ({ simpleInflection = false, port = env.SERVER_PORT } = {}) => {
       SELECT s.nspname AS table_schema
       FROM pg_catalog.pg_namespace s;
       `);
-      return res.send(printSchemas(dbName, results.rows, req, env));
+      return res.send(
+        printSchemas({
+          dbName,
+          schemas: results.rows,
+          req,
+          hostname: env.SERVER_HOST,
+          port
+        })
+      );
     }
     return next();
   });
@@ -138,7 +146,7 @@ export default ({ simpleInflection = false, port = env.SERVER_PORT } = {}) => {
       FROM
         pg_catalog.pg_database;
       `);
-      return res.send(printDatabases(results.rows, req, env));
+      return res.send(printDatabases({ databases: results.rows, req, port }));
     }
     return next();
   });
