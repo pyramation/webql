@@ -1,7 +1,18 @@
 const env = require('./env');
 const { NodePlugin } = require('graphile-build');
+import PgSimplifyInflectorPlugin from './plugins/PgSimplifyInflectorPlugin';
 
-export const getGraphileSettings = ({ connection, host, port, schema }) => ({
+export const getGraphileSettings = ({
+  connection,
+  host,
+  port,
+  schema,
+  simpleInflection
+}) => ({
+  graphileBuildOptions: simpleInflection
+    ? { pgSimplifyTableNames: true }
+    : undefined,
+  appendPlugins: simpleInflection ? [PgSimplifyInflectorPlugin] : undefined,
   skipPlugins: [NodePlugin],
   dynamicJson: true,
   disableGraphiql: false,

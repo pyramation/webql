@@ -41,37 +41,38 @@ const getRootPgPool = (dbName) => {
   return pgPool;
 };
 
-const getGraphileInstanceObj = (dbName, schemaName) => {
-  const key = [dbName, schemaName].join('');
+export default ({ simpleInflection = false, port = env.SERVER_PORT } = {}) => {
+  const getGraphileInstanceObj = (dbName, schemaName) => {
+    const key = [dbName, schemaName].join('');
 
-  if (cache.has(key)) {
-    return cache.get(key);
-  }
-  const opts = {
-    ...getGraphileSettings({
-      connection: getDbString(dbName),
-      port: env.SERVER_PORT,
-      host: env.SERVER_HOST,
-      schema: schemaName
-    }),
-    graphqlRoute: '/graphql',
-    graphiqlRoute: '/graphiql'
+    if (cache.has(key)) {
+      return cache.get(key);
+    }
+    const opts = {
+      ...getGraphileSettings({
+        simpleInflection,
+        connection: getDbString(dbName),
+        port,
+        host: env.SERVER_HOST,
+        schema: schemaName
+      }),
+      graphqlRoute: '/graphql',
+      graphiqlRoute: '/graphiql'
+    };
+
+    const pgPool = new pg.Pool({
+      connectionString: getDbString(dbName)
+    });
+
+    const obj = {
+      pgPool,
+      handler: postgraphile(pgPool, opts.schema, opts)
+    };
+
+    cache.set(key, obj);
+    return obj;
   };
 
-  const pgPool = new pg.Pool({
-    connectionString: getDbString(dbName)
-  });
-
-  const obj = {
-    pgPool,
-    handler: postgraphile(pgPool, opts.schema, opts)
-  };
-
-  cache.set(key, obj);
-  return obj;
-};
-
-export default () => {
   const app = express();
 
   const rootPgPool = new pg.Pool({
@@ -142,7 +143,7 @@ export default () => {
     return next();
   });
 
-  app.listen(env.SERVER_PORT, env.SERVER_HOST, () =>
-    console.log(`app listening at http://${env.SERVER_HOST}:${env.SERVER_PORT}`)
+  app.listen(port, env.SERVER_HOST, () =>
+    console.log(`app listening at http://${env.SERVER_HOST}:${port}`)
   );
 };

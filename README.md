@@ -3,7 +3,7 @@
 Creates the PostGraphile explorer for *EVERY* database and schema on your machine. 
 
 ```sh
-npm install -g webql-cli
+npm install -g @webql/cli
 ```
 
 Then run the explorer!
