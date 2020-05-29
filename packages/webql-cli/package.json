@@ -1,5 +1,5 @@
 {
-  "name": "webql-cli",
+  "name": "@webql/cli",
   "version": "0.1.12",
   "description": "webql-cli",
   "author": "Dan Lynch <pyramation@gmail.com>",
