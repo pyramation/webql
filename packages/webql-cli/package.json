@@ -64,6 +64,6 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.4.2",
-    "@pyramation/webql": "^0.2.8"
+    "@webql/server": "^0.3.0"
   }
 }

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import webql from '@pyramation/webql';
+import server from '@webql/server';
 
 const main = async () => {
-  webql();
+  server();
 };
 
 main();
