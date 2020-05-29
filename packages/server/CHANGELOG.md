@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.2](https://github.com/pyramation/webql/compare/@webql/server@0.3.1...@webql/server@0.3.2) (2020-05-29)
+
+
+### Bug Fixes
+
+* **server:** update render ([079743e](https://github.com/pyramation/webql/commit/079743ed08395de4dfa95a6229237a4b6695f4c3))
+
+
+
+
+
 ## [0.3.1](https://github.com/pyramation/webql/compare/@webql/server@0.3.0...@webql/server@0.3.1) (2020-05-29)
 
 **Note:** Version bump only for package @webql/server
