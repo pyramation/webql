@@ -14,6 +14,11 @@ const questions = [
     name: 'port',
     type: 'number',
     alias: 'p'
+  },
+  {
+    name: 'origin',
+    type: 'string',
+    alias: 'o'
   }
 ];
 

@@ -41,7 +41,11 @@ const getRootPgPool = (dbName) => {
   return pgPool;
 };
 
-export default ({ simpleInflection = false, port = env.SERVER_PORT } = {}) => {
+export default ({
+  simpleInflection = false,
+  port = env.SERVER_PORT,
+  origin
+} = {}) => {
   const getGraphileInstanceObj = (dbName, schemaName) => {
     const key = [dbName, schemaName].join('');
 
@@ -88,7 +92,15 @@ export default ({ simpleInflection = false, port = env.SERVER_PORT } = {}) => {
     res.send('ok');
   });
 
-  app.use(cors());
+  const corsOptions = origin
+    ? {
+        origin,
+        credentials: true,
+        optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+      }
+    : undefined;
+
+  app.use(cors(corsOptions));
 
   process.on('SIGTERM', () => {
     cache.reset();
