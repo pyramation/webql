@@ -1,259 +1,468 @@
-import { singularize } from 'inflection';
-export default function PgSimplifyInflectorPlugin(
+// https://raw.githubusercontent.com/graphile/pg-simplify-inflector/master/index.js
+
+function fixCapitalisedPlural(fn) {
+  return function (str) {
+    const original = fn.call(this, str);
+    return original.replace(/[0-9]S(?=[A-Z]|$)/g, (match) =>
+      match.toLowerCase()
+    );
+  };
+}
+
+function fixChangePlural(fn) {
+  return function (str) {
+    const matches = str.match(/([A-Z]|_[a-z0-9])[a-z0-9]*_*$/);
+    const index = matches ? matches.index + matches[1].length - 1 : 0;
+    const suffixMatches = str.match(/_*$/);
+    const suffixIndex = suffixMatches.index;
+    const prefix = str.substr(0, index);
+    const word = str.substr(index, suffixIndex - index);
+    const suffix = str.substr(suffixIndex);
+    return `${prefix}${fn.call(this, word)}${suffix}`;
+  };
+}
+
+function PgSimplifyInflectorPlugin(
   builder,
-  { pgSimpleCollections, pgOmitListSuffix, pgSimplifyTableNames }
+  {
+    pgSimpleCollections,
+    pgOmitListSuffix,
+    pgSimplifyPatch = true,
+    pgSimplifyAllRows = true,
+    pgShortPk = true,
+    pgSimplifyMultikeyRelations = true,
+    nodeIdFieldName = 'nodeId'
+  }
 ) {
   const hasConnections = pgSimpleCollections !== 'only';
   const hasSimpleCollections =
     pgSimpleCollections === 'only' || pgSimpleCollections === 'both';
-  if (hasConnections && hasSimpleCollections && pgOmitListSuffix) {
-    throw new Error(
-      'Cannot omit -list suffix (`pgOmitListSuffix`) if both relay connections and simple collections are enabled.'
-    );
-  }
+
   if (
     hasSimpleCollections &&
     !hasConnections &&
     pgOmitListSuffix !== true &&
     pgOmitListSuffix !== false
   ) {
-      console.warn( // eslint-disable-line
-      'You can simplify the inflector further by adding `{graphileOptions: {pgOmitListSuffix: true}}` to the options passed to PostGraphile, however be aware that doing so will mean that later enabling relay connections will be a breaking change. To dismiss this message, set `pgOmitListSuffix` to false instead.'
+    // eslint-disable-next-line no-console
+    console.warn(
+      'You can simplify the inflector further by adding `{graphileBuildOptions: {pgOmitListSuffix: true}}` to the options passed to PostGraphile, however be aware that doing so will mean that later enabling relay connections will be a breaking change. To dismiss this message, set `pgOmitListSuffix` to false instead.'
     );
   }
 
-  builder.hook('inflection', (inflection) => {
+  const connectionSuffix = pgOmitListSuffix ? '-connection' : '';
+  const ConnectionSuffix = pgOmitListSuffix ? 'Connection' : '';
+  const listSuffix = pgOmitListSuffix ? '' : '-list';
+  const ListSuffix = pgOmitListSuffix ? '' : 'List';
+
+  builder.hook('inflection', (oldInflection) => {
     return {
-      ...inflection,
-      patchField() {
-        return this.camelCase('patch');
+      ...oldInflection,
+
+      /*
+       * This solves the issue with `blah-table1s` becoming `blahTable1S`
+       * (i.e. the capital S at the end) or `table1-connection becoming `Table1SConnection`
+       */
+      camelCase: fixCapitalisedPlural(oldInflection.camelCase),
+      upperCamelCase: fixCapitalisedPlural(oldInflection.upperCamelCase),
+
+      /*
+       * Pluralize/singularize only supports single words, so only run
+       * on the final segment of a name.
+       */
+      pluralize: fixChangePlural(oldInflection.pluralize),
+      singularize: fixChangePlural(oldInflection.singularize),
+
+      distinctPluralize(str) {
+        const singular = this.singularize(str);
+        const plural = this.pluralize(singular);
+        if (singular !== plural) {
+          return plural;
+        }
+        if (
+          plural.endsWith('ch') ||
+          plural.endsWith('s') ||
+          plural.endsWith('sh') ||
+          plural.endsWith('x') ||
+          plural.endsWith('z')
+        ) {
+          return plural + 'es';
+        } else if (plural.endsWith('y')) {
+          return plural.slice(0, -1) + 'ies';
+        } else {
+          return plural + 's';
+        }
       },
-      tableNode(table) {
+
+      // Fix a naming bug
+      deletedNodeId(table) {
         return this.camelCase(
-          `${this._singularizedTableName(table)}-by-node-id`
+          `deleted-${this.singularize(table.name)}-${nodeIdFieldName}`
         );
       },
-      allRows(table) {
-        return this.camelCase(
-          this.pluralize(this._singularizedTableName(table))
+
+      getBaseName(columnName) {
+        const matches = columnName.match(
+          /^(.+?)(_row_id|_id|_uuid|_fk|_pk|RowId|Id|Uuid|UUID|Fk|Pk)$/
+        );
+        if (matches) {
+          return matches[1];
+        }
+        return null;
+      },
+
+      baseNameMatches(baseName, otherName) {
+        const singularizedName = this.singularize(otherName);
+        return baseName === singularizedName;
+      },
+
+      /* This is a good method to override. */
+      getOppositeBaseName(baseName) {
+        return (
+          {
+            /*
+             * Changes to this list are breaking changes and will require a
+             * major version update, so we need to group as many together as
+             * possible! Rather than sending a PR, please look for an open
+             * issue called something like "Add more opposites" (if there isn't
+             * one then please open it) and add your suggestions to the GitHub
+             * comments.
+             */
+            parent: 'child',
+            child: 'parent',
+            author: 'authored',
+            editor: 'edited',
+            reviewer: 'reviewed'
+          }[baseName] || null
         );
       },
-      allRowsSimple(table) {
-        return this.camelCase(
-          `${this.pluralize(this._singularizedTableName(table))}-list`
-        );
+
+      getBaseNameFromKeys(detailedKeys) {
+        if (detailedKeys.length === 1) {
+          const key = detailedKeys[0];
+          const columnName = this._columnName(key);
+          return this.getBaseName(columnName);
+        }
+        if (pgSimplifyMultikeyRelations) {
+          const columnNames = detailedKeys.map((key) => this._columnName(key));
+          const baseNames = columnNames.map((columnName) =>
+            this.getBaseName(columnName)
+          );
+          // Check none are null
+          if (baseNames.every((n) => n)) {
+            return baseNames.join('-');
+          }
+        }
+        return null;
       },
+
+      ...(pgSimplifyPatch
+        ? {
+            patchField() {
+              return 'patch';
+            }
+          }
+        : null),
+
+      ...(pgSimplifyAllRows
+        ? {
+            allRows(table) {
+              return this.camelCase(
+                this.distinctPluralize(this._singularizedTableName(table)) +
+                  connectionSuffix
+              );
+            },
+            allRowsSimple(table) {
+              return this.camelCase(
+                this.distinctPluralize(this._singularizedTableName(table)) +
+                  listSuffix
+              );
+            }
+          }
+        : null),
+
+      computedColumn(pseudoColumnName, proc, _table) {
+        return proc.tags.fieldName
+          ? proc.tags.fieldName + (proc.returnsSet ? ConnectionSuffix : '')
+          : this.camelCase(
+              pseudoColumnName + (proc.returnsSet ? connectionSuffix : '')
+            );
+      },
+
+      computedColumnList(pseudoColumnName, proc, _table) {
+        return proc.tags.fieldName
+          ? proc.tags.fieldName + ListSuffix
+          : this.camelCase(pseudoColumnName + listSuffix);
+      },
+
       singleRelationByKeys(detailedKeys, table, _foreignTable, constraint) {
         if (constraint.tags.fieldName) {
           return constraint.tags.fieldName;
-        } else if (detailedKeys.length === 1) {
-          return this.column(detailedKeys[0]).replace(/id$/i, '');
         }
-
-        return this.camelCase(this._singularizedTableName(table));
+        const baseName = this.getBaseNameFromKeys(detailedKeys);
+        if (baseName) {
+          return this.camelCase(baseName);
+        }
+        if (this.baseNameMatches(baseName, table.name)) {
+          return this.camelCase(`${this._singularizedTableName(table)}`);
+        }
+        return oldInflection.singleRelationByKeys(
+          detailedKeys,
+          table,
+          _foreignTable,
+          constraint
+        );
       },
+
       singleRelationByKeysBackwards(
-        _detailedKeys,
+        detailedKeys,
         table,
         foreignTable,
         constraint
       ) {
         if (constraint.tags.foreignSingleFieldName) {
           return constraint.tags.foreignSingleFieldName;
-        } else if (constraint.tags.foreignFieldName) {
-          return constraint.tags.foreignFieldName;
-        } else if (constraint.tags.fieldName) {
-          return constraint.tags.fieldName;
-        } else if (pgSimplifyTableNames) {
-          const tableName = this._singularizedTableName(table);
-          const foreignTableName = this._singularizedTableName(foreignTable);
-          if (tableName.startsWith(foreignTableName)) {
-            return this.camelCase(
-              tableName.replace(`${foreignTableName}_`, '')
-            );
-          }
         }
-        return this.camelCase(this._singularizedTableName(table));
-      },
-      manyRelationByKeys(detailedKeys, table, foreignTable, constraint) {
-        const foreignTableName = this._singularizedTableName(foreignTable);
         if (constraint.tags.foreignFieldName) {
           return constraint.tags.foreignFieldName;
-        } else if (detailedKeys.length === 1) {
-          const detailedKeyName = this.column(detailedKeys[0]).replace(
-            /id$/i,
-            ''
+        }
+        const baseName = this.getBaseNameFromKeys(detailedKeys);
+        const oppositeBaseName = baseName && this.getOppositeBaseName(baseName);
+        if (oppositeBaseName) {
+          return this.camelCase(
+            `${oppositeBaseName}-${this._singularizedTableName(table)}`
           );
-          let tableName = this._singularizedTableName(table);
+        }
+        if (this.baseNameMatches(baseName, foreignTable.name)) {
+          return this.camelCase(`${this._singularizedTableName(table)}`);
+        }
+        return oldInflection.singleRelationByKeysBackwards(
+          detailedKeys,
+          table,
+          foreignTable,
+          constraint
+        );
+      },
 
-          if (pgSimplifyTableNames && tableName.startsWith(foreignTableName)) {
-            tableName = tableName.replace(`${foreignTableName}_`, '');
+      _manyRelationByKeysBase(detailedKeys, table, _foreignTable, _constraint) {
+        const baseName = this.getBaseNameFromKeys(detailedKeys);
+        const oppositeBaseName = baseName && this.getOppositeBaseName(baseName);
+        if (oppositeBaseName) {
+          return this.camelCase(
+            `${oppositeBaseName}-${this.distinctPluralize(
+              this._singularizedTableName(table)
+            )}`
+          );
+        }
+        if (this.baseNameMatches(baseName, _foreignTable.name)) {
+          return this.camelCase(
+            `${this.distinctPluralize(this._singularizedTableName(table))}`
+          );
+        }
+        return null;
+      },
+
+      manyRelationByKeys(detailedKeys, table, foreignTable, constraint) {
+        if (constraint.tags.foreignFieldName) {
+          if (constraint.tags.foreignSimpleFieldName) {
+            return constraint.tags.foreignFieldName;
+          } else {
+            return constraint.tags.foreignFieldName + ConnectionSuffix;
           }
+        }
+        const base = this._manyRelationByKeysBase(
+          detailedKeys,
+          table,
+          foreignTable,
+          constraint
+        );
+        if (base) {
+          return base + ConnectionSuffix;
+        }
+        return (
+          oldInflection.manyRelationByKeys(
+            detailedKeys,
+            table,
+            foreignTable,
+            constraint
+          ) + ConnectionSuffix
+        );
+      },
 
-          return this.camelCase(
-            detailedKeyName !== foreignTableName
-              ? [detailedKeyName, this.pluralize(tableName)].join('-')
-              : this.pluralize(tableName)
-          );
+      manyRelationByKeysSimple(detailedKeys, table, foreignTable, constraint) {
+        if (constraint.tags.foreignSimpleFieldName) {
+          return constraint.tags.foreignSimpleFieldName;
         }
+        if (constraint.tags.foreignFieldName) {
+          return constraint.tags.foreignFieldName + ListSuffix;
+        }
+        const base = this._manyRelationByKeysBase(
+          detailedKeys,
+          table,
+          foreignTable,
+          constraint
+        );
+        if (base) {
+          return base + ListSuffix;
+        }
+        return (
+          oldInflection.manyRelationByKeys(
+            detailedKeys,
+            table,
+            foreignTable,
+            constraint
+          ) + ListSuffix
+        );
+      },
 
+      functionQueryName(proc) {
         return this.camelCase(
-          `${this.pluralize(
-            this._singularizedTableName(table)
-          )}-by-${detailedKeys
-            .map(this.column.bind(this))
-            .filter((key) => `${foreignTableName}Id` !== key)
-            .join('-and-')}`
+          this._functionName(proc) + (proc.returnsSet ? connectionSuffix : '')
         );
       },
-      rowByUniqueKeys(detailedKeys, table, constraint) {
-        if (constraint.tags.fieldName) {
-          return constraint.tags.fieldName;
-        } else if (
-          detailedKeys.length === 1 &&
-          this.column(detailedKeys[0]) === 'id'
-        ) {
-          // TODO replace all with own inflection lib
-          return singularize(
-            this.camelCase(this._singularizedTableName(table))
-          );
-        }
-        return this.camelCase(
-          `${this._singularizedTableName(table)}-by-${detailedKeys
-            .map((key) => this.column(key))
-            .join('-and-')}`
-        );
+      functionQueryNameList(proc) {
+        return this.camelCase(this._functionName(proc) + listSuffix);
       },
-      updateByKeys(detailedKeys, table, constraint) {
-        if (constraint.tags.updateFieldName) {
-          return constraint.tags.updateFieldName;
-        }
-        if (
-          detailedKeys.length === 1 &&
-          this.column(detailedKeys[0]) === 'id'
-        ) {
-          return this.camelCase(`update-${this._singularizedTableName(table)}`);
-        }
 
-        return this.camelCase(
-          `update-${this._singularizedTableName(
-            table
-          )}-by-${detailedKeys.map((key) => this.column(key)).join('-and-')}`
-        );
-      },
-      deleteByKeys(detailedKeys, table, constraint) {
-        if (constraint.tags.deleteFieldName) {
-          return constraint.tags.deleteFieldName;
-        } else if (
-          detailedKeys.length === 1 &&
-          this.column(detailedKeys[0]) === 'id'
-        ) {
-          return this.camelCase(`delete-${this._singularizedTableName(table)}`);
-        }
+      ...(pgShortPk
+        ? {
+            tableNode(table) {
+              return this.camelCase(
+                `${this._singularizedTableName(table)}-by-${nodeIdFieldName}`
+              );
+            },
+            rowByUniqueKeys(detailedKeys, table, constraint) {
+              if (constraint.tags.fieldName) {
+                return constraint.tags.fieldName;
+              }
+              if (constraint.type === 'p') {
+                // Primary key, shorten!
+                return this.camelCase(this._singularizedTableName(table));
+              } else {
+                return this.camelCase(
+                  `${this._singularizedTableName(
+                    table
+                  )}-by-${detailedKeys
+                    .map((key) => this.column(key))
+                    .join('-and-')}`
+                );
+              }
+            },
 
-        return this.camelCase(
-          `delete-${this._singularizedTableName(
-            table
-          )}-by-${detailedKeys.map((key) => this.column(key)).join('-and-')}`
-        );
-      },
-      updateByKeysInputType(detailedKeys, table, constraint) {
-        if (constraint.tags.updateFieldName) {
-          return this.upperCamelCase(
-            `${constraint.tags.updateFieldName}-input`
-          );
-        } else if (
-          detailedKeys.length === 1 &&
-          this.column(detailedKeys[0]) === 'id'
-        ) {
-          return this.camelCase(
-            `update-${this._singularizedTableName(table)}-input`
-          );
-        }
-
-        return this.upperCamelCase(
-          `update-${this._singularizedTableName(
-            table
-          )}-by-${detailedKeys
-            .map((key) => this.column(key))
-            .join('-and-')}-input`
-        );
-      },
-      deleteByKeysInputType(detailedKeys, table, constraint) {
-        if (constraint.tags.deleteFieldName) {
-          return this.upperCamelCase(
-            `${constraint.tags.deleteFieldName}-input`
-          );
-        } else if (
-          detailedKeys.length === 1 &&
-          this.column(detailedKeys[0]) === 'id'
-        ) {
-          return this.camelCase(
-            `delete-${this._singularizedTableName(table)}-input`
-          );
-        }
-        return this.upperCamelCase(
-          `delete-${this._singularizedTableName(
-            table
-          )}-by-${detailedKeys
-            .map((key) => this.column(key))
-            .join('-and-')}-input`
-        );
-      },
-      updateNode(table) {
-        return this.camelCase(
-          `update-${this._singularizedTableName(table)}-by-node-id`
-        );
-      },
-      deleteNode(table) {
-        return this.camelCase(
-          `delete-${this._singularizedTableName(table)}-by-node-id`
-        );
-      },
-      updateNodeInputType(table) {
-        return this.upperCamelCase(
-          `update-${this._singularizedTableName(table)}-by-node-id-input`
-        );
-      },
-      deleteNodeInputType(table) {
-        return this.upperCamelCase(
-          `delete-${this._singularizedTableName(table)}-by-node-id-input`
-        );
-      },
-      edgeField(table) {
-        return this.camelCase(`${this._singularizedTableName(table)}-edge`);
-      },
-      scalarFunctionConnection(proc) {
-        return this.upperCamelCase(`${this._functionName(proc)}-connection`);
-      },
-      scalarFunctionEdge(proc) {
-        return this.upperCamelCase(
-          `${this.singularize(this._functionName(proc))}-edge`
-        );
-      },
-      createField(table) {
-        return this.camelCase(`create-${this._singularizedTableName(table)}`);
-      },
-      createInputType(table) {
-        return this.upperCamelCase(
-          `create-${this._singularizedTableName(table)}-input`
-        );
-      },
-      createPayloadType(table) {
-        return this.upperCamelCase(
-          `create-${this._singularizedTableName(table)}-payload`
-        );
-      },
-      updatePayloadType(table) {
-        return this.upperCamelCase(
-          `update-${this._singularizedTableName(table)}-payload`
-        );
-      },
-      deletePayloadType(table) {
-        return this.upperCamelCase(
-          `delete-${this._singularizedTableName(table)}-payload`
-        );
-      }
+            updateByKeys(detailedKeys, table, constraint) {
+              if (constraint.tags.updateFieldName) {
+                return constraint.tags.updateFieldName;
+              }
+              if (constraint.type === 'p') {
+                return this.camelCase(
+                  `update-${this._singularizedTableName(table)}`
+                );
+              } else {
+                return this.camelCase(
+                  `update-${this._singularizedTableName(
+                    table
+                  )}-by-${detailedKeys
+                    .map((key) => this.column(key))
+                    .join('-and-')}`
+                );
+              }
+            },
+            deleteByKeys(detailedKeys, table, constraint) {
+              if (constraint.tags.deleteFieldName) {
+                return constraint.tags.deleteFieldName;
+              }
+              if (constraint.type === 'p') {
+                // Primary key, shorten!
+                return this.camelCase(
+                  `delete-${this._singularizedTableName(table)}`
+                );
+              } else {
+                return this.camelCase(
+                  `delete-${this._singularizedTableName(
+                    table
+                  )}-by-${detailedKeys
+                    .map((key) => this.column(key))
+                    .join('-and-')}`
+                );
+              }
+            },
+            updateByKeysInputType(detailedKeys, table, constraint) {
+              if (constraint.tags.updateFieldName) {
+                return this.upperCamelCase(
+                  `${constraint.tags.updateFieldName}-input`
+                );
+              }
+              if (constraint.type === 'p') {
+                // Primary key, shorten!
+                return this.upperCamelCase(
+                  `update-${this._singularizedTableName(table)}-input`
+                );
+              } else {
+                return this.upperCamelCase(
+                  `update-${this._singularizedTableName(
+                    table
+                  )}-by-${detailedKeys
+                    .map((key) => this.column(key))
+                    .join('-and-')}-input`
+                );
+              }
+            },
+            deleteByKeysInputType(detailedKeys, table, constraint) {
+              if (constraint.tags.deleteFieldName) {
+                return this.upperCamelCase(
+                  `${constraint.tags.deleteFieldName}-input`
+                );
+              }
+              if (constraint.type === 'p') {
+                // Primary key, shorten!
+                return this.upperCamelCase(
+                  `delete-${this._singularizedTableName(table)}-input`
+                );
+              } else {
+                return this.upperCamelCase(
+                  `delete-${this._singularizedTableName(
+                    table
+                  )}-by-${detailedKeys
+                    .map((key) => this.column(key))
+                    .join('-and-')}-input`
+                );
+              }
+            },
+            updateNode(table) {
+              return this.camelCase(
+                `update-${this._singularizedTableName(
+                  table
+                )}-by-${nodeIdFieldName}`
+              );
+            },
+            deleteNode(table) {
+              return this.camelCase(
+                `delete-${this._singularizedTableName(
+                  table
+                )}-by-${nodeIdFieldName}`
+              );
+            },
+            updateNodeInputType(table) {
+              return this.upperCamelCase(
+                `update-${this._singularizedTableName(
+                  table
+                )}-by-${nodeIdFieldName}-input`
+              );
+            },
+            deleteNodeInputType(table) {
+              return this.upperCamelCase(
+                `delete-${this._singularizedTableName(
+                  table
+                )}-by-${nodeIdFieldName}-input`
+              );
+            }
+          }
+        : null)
     };
   });
 }
+
+module.exports = PgSimplifyInflectorPlugin;
+// Hacks for TypeScript/Babel import
+module.exports.default = PgSimplifyInflectorPlugin;
+Object.defineProperty(module.exports, '__esModule', { value: true });
