@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.4.0](https://github.com/pyramation/webql/compare/@webql/server@0.3.3...@webql/server@0.4.0) (2020-05-30)
+
+
+### Bug Fixes
+
+* **server:** update inflection ([a42cddb](https://github.com/pyramation/webql/commit/a42cddb2128e5c9522103ba354d01acef4f3dcfa))
+
+
+### Features
+
+* **server:** simplify ([8a36c8e](https://github.com/pyramation/webql/commit/8a36c8e0aac0e6d8993a0d22226b1681a5847ee9))
+
+
+
+
+
 ## [0.3.3](https://github.com/pyramation/webql/compare/@webql/server@0.3.2...@webql/server@0.3.3) (2020-05-30)
 
 
