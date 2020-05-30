@@ -8,17 +8,20 @@ const questions = [
   {
     name: 'simpleInflection',
     type: 'boolean',
-    alias: 's'
+    alias: 's',
+    default: true
   },
   {
     name: 'port',
     type: 'number',
-    alias: 'p'
+    alias: 'p',
+    default: 5555
   },
   {
     name: 'origin',
     type: 'string',
-    alias: 'o'
+    alias: 'o',
+    default: 'http://localhost:3000'
   }
 ];
 
