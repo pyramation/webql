@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.6](https://github.com/pyramation/webql/compare/@webql/cli@0.2.5...@webql/cli@0.2.6) (2020-05-30)
+
+
+### Bug Fixes
+
+* **cli:** defaults ([1911269](https://github.com/pyramation/webql/commit/1911269f9321009b46de01f3f8628f3bcbead009))
+
+
+
+
+
 ## [0.2.5](https://github.com/pyramation/webql/compare/@webql/cli@0.2.4...@webql/cli@0.2.5) (2020-05-30)
 
 **Note:** Version bump only for package @webql/cli
