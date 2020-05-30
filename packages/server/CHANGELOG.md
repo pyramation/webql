@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.4.1](https://github.com/pyramation/webql/compare/@webql/server@0.4.0...@webql/server@0.4.1) (2020-05-30)
+
+
+### Bug Fixes
+
+* switch for opposite base names ([717e4ec](https://github.com/pyramation/webql/commit/717e4ec67f7b43eaef0a9944b17d3c7952002ddc))
+
+
+
+
+
 # [0.4.0](https://github.com/pyramation/webql/compare/@webql/server@0.3.3...@webql/server@0.4.0) (2020-05-30)
 
 
