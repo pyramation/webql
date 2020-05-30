@@ -116,6 +116,10 @@ function PgSimplifyInflectorPlugin(
         return baseName === singularizedName;
       },
 
+      baseNameMatchesAny(baseName, otherName) {
+        return this.singularize(baseName) === this.singularize(otherName);
+      },
+
       /* This is a good method to override. */
       getOppositeBaseName(baseName) {
         return (
@@ -128,11 +132,13 @@ function PgSimplifyInflectorPlugin(
              * one then please open it) and add your suggestions to the GitHub
              * comments.
              */
-            parent: 'child',
-            child: 'parent',
-            author: 'authored',
-            editor: 'edited',
-            reviewer: 'reviewed'
+            // NOTE: reason NOT using this is because would need to index
+            // field names to take into account this particular case (e.g. events with event.parent_id could not have parent OR child properties on it)
+            // parent: 'child',
+            // child: 'parent'
+            // author: 'authored',
+            // editor: 'edited',
+            // reviewer: 'reviewed'
           }[baseName] || null
         );
       },
@@ -199,10 +205,23 @@ function PgSimplifyInflectorPlugin(
         if (constraint.tags.fieldName) {
           return constraint.tags.fieldName;
         }
+
         const baseName = this.getBaseNameFromKeys(detailedKeys);
+        if (constraint.classId === constraint.foreignClassId) {
+          if (this.baseNameMatchesAny(baseName, table.name)) {
+            return oldInflection.singleRelationByKeys(
+              detailedKeys,
+              table,
+              _foreignTable,
+              constraint
+            );
+          }
+        }
+
         if (baseName) {
           return this.camelCase(baseName);
         }
+
         if (this.baseNameMatches(baseName, table.name)) {
           return this.camelCase(`${this._singularizedTableName(table)}`);
         }
@@ -228,11 +247,25 @@ function PgSimplifyInflectorPlugin(
         }
         const baseName = this.getBaseNameFromKeys(detailedKeys);
         const oppositeBaseName = baseName && this.getOppositeBaseName(baseName);
+
+        // added
+        // if (constraint.classId === constraint.foreignClassId) {
+        //   if (this.baseNameMatches(baseName, foreignTable.name)) {
+        //     return oldInflection.singleRelationByKeysBackwards(
+        //       detailedKeys,
+        //       table,
+        //       foreignTable,
+        //       constraint
+        //     );
+        //   }
+        // }
+
         if (oppositeBaseName) {
           return this.camelCase(
             `${oppositeBaseName}-${this._singularizedTableName(table)}`
           );
         }
+
         if (this.baseNameMatches(baseName, foreignTable.name)) {
           return this.camelCase(`${this._singularizedTableName(table)}`);
         }
@@ -247,6 +280,14 @@ function PgSimplifyInflectorPlugin(
       _manyRelationByKeysBase(detailedKeys, table, _foreignTable, _constraint) {
         const baseName = this.getBaseNameFromKeys(detailedKeys);
         const oppositeBaseName = baseName && this.getOppositeBaseName(baseName);
+
+        // added
+        if (_constraint.classId === _constraint.foreignClassId) {
+          if (this.baseNameMatches(baseName, table.name)) {
+            return null;
+          }
+        }
+
         if (oppositeBaseName) {
           return this.camelCase(
             `${oppositeBaseName}-${this.distinctPluralize(
