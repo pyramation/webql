@@ -42,7 +42,8 @@ const getRootPgPool = (dbName) => {
 };
 
 export default ({
-  simpleInflection = false,
+  simpleInflection = true,
+  oppositeBaseNames = true,
   port = env.SERVER_PORT,
   origin
 } = {}) => {
@@ -55,6 +56,7 @@ export default ({
     const opts = {
       ...getGraphileSettings({
         simpleInflection,
+        oppositeBaseNames,
         connection: getDbString(dbName),
         port,
         host: env.SERVER_HOST,

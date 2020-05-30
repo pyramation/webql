@@ -12,6 +12,12 @@ const questions = [
     default: true
   },
   {
+    name: 'oppositeBaseNames',
+    type: 'boolean',
+    alias: 'o',
+    default: true
+  },
+  {
     name: 'port',
     type: 'number',
     alias: 'p',

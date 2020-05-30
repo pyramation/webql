@@ -7,11 +7,12 @@ export const getGraphileSettings = ({
   host,
   port,
   schema,
-  simpleInflection
+  simpleInflection,
+  oppositeBaseNames
 }) => ({
-  graphileBuildOptions: simpleInflection
-    ? { pgSimplifyTableNames: true }
-    : undefined,
+  graphileBuildOptions: {
+    pgSimplifyOppositeBaseNames: oppositeBaseNames ? true : false
+  },
   appendPlugins: simpleInflection ? [PgSimplifyInflectorPlugin] : undefined,
   skipPlugins: [NodePlugin],
   dynamicJson: true,

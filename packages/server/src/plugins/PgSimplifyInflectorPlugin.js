@@ -31,6 +31,7 @@ function PgSimplifyInflectorPlugin(
     pgSimplifyAllRows = true,
     pgShortPk = true,
     pgSimplifyMultikeyRelations = true,
+    pgSimplifyOppositeBaseNames = true,
     nodeIdFieldName = 'nodeId'
   }
 ) {
@@ -123,7 +124,8 @@ function PgSimplifyInflectorPlugin(
       /* This is a good method to override. */
       getOppositeBaseName(baseName) {
         return (
-          {
+          pgSimplifyOppositeBaseNames &&
+          ({
             /*
              * Changes to this list are breaking changes and will require a
              * major version update, so we need to group as many together as
@@ -132,14 +134,17 @@ function PgSimplifyInflectorPlugin(
              * one then please open it) and add your suggestions to the GitHub
              * comments.
              */
-            // NOTE: reason NOT using this is because would need to index
-            // field names to take into account this particular case (e.g. events with event.parent_id could not have parent OR child properties on it)
-            // parent: 'child',
-            // child: 'parent'
-            // author: 'authored',
-            // editor: 'edited',
-            // reviewer: 'reviewed'
-          }[baseName] || null
+            // NOTE: reason to be careful using this:
+            // field names to take into account this particular case (e.g. events with event.parent_id could not have parent OR child fields)
+            inviter: 'invitee',
+            parent: 'child',
+            child: 'parent',
+            owner: 'owned',
+            author: 'authored',
+            editor: 'edited',
+            reviewer: 'reviewed'
+          }[baseName] ||
+            null)
         );
       },
 
